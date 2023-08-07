@@ -30,7 +30,7 @@ import markdownify from 'vite-plugin-markdownify';
 export default defineConfig({
   plugins: [
     markdownify({
-      template: './path/to/template.html',
+      htmlTemplate: './path/to/template.html',
       input: './path/to/markdown',
       output: './path/to/output',
       contentPlaceholder: `<!--markdownify content-->`,
