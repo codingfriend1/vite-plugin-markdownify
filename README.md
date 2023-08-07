@@ -36,7 +36,13 @@ export default defineConfig({
       contentPlaceholder: `<!--markdownify content-->`,
       metaPlaceholder: `<!--markdownify meta-->`,
       words_per_minute: 275, // Optional reading time calculation
-      defaults: { // Default meta tags and fields for `feed.xml`
+      feedTemplate: './feed.xml', // Optional
+      feedContentPlaceholder: '<!-- markdown items -->', // Optional
+      sitemapTemplate: './sitemap.xml', // Optional
+      sitemapContentPlaceholder: '<!-- markdown items -->', // Optional
+      doNotRenderFeed: true, // Don't render the `feed.xml`
+      doNotRenderSitemap: true, // Don't render the `sitemap.xml`
+      defaults: { // Default meta tags and fields for default `feed.xml`
         title: `Default Title`,
         author: `Author's Name`,
         description: 'Site description',
@@ -55,8 +61,14 @@ export default defineConfig({
 - **`output`**: Output directory for HTML files (default `process.cwd()`).
 - **`contentPlaceholder`**: Placeholder for content script (default `<!--markdownify content-->`).
 - **`metaPlaceholder`**: Placeholder for meta tags (default `<!--markdownify meta-->`).
+- **`feedTemplate`**: Feed.xml template path. A default feed.xml template will be provided if not supplied.
+- **`feedContentPlaceholder`**: If a `feedTemplate` is supplied, this specifies the string to replace with the markdown items.
+- **`sitemapTemplate`**: sitemap.xml template path. A default sitemap.xml template will be provided if not supplied.
+- **`sitemapContentPlaceholder`**: If a `sitemapTemplate` is supplied, this specifies the string to replace with the markdown items/urls.
+- **`doNotRenderFeed`**: Disable building the `feed.xml`
+- **`doNotRenderSitemap`**: Disable building the `sitemap.xml`
 - **`words_per_minute`**: Optional reading time calculation (recommended `275`) presented in `readingTime` (`int` of minutes).
-- **`defaults`**: Values to be merged with page meta tags. Required for `feed.xml`, must include `title`, `author`, `baseUrl`, and `description` for proper rendering.
+- **`defaults`**: Values to be merged with page meta tags. Required when using the default `feed.xml`, must include `title`, `author`, `baseUrl`, and `description` for proper rendering.
 
 ## Front Matter
 

@@ -13,6 +13,8 @@ const MARKDOWNIFY_META_PLACEHOLDER = '<!--markdownify meta-->'
 const DEFAULT_TEMPLATE_PATH = './index.html'
 const DEFAULT_MARKDOWN_DIR = path.resolve(__dirname, './markdown');
 const DEFAULT_OUTPUT_DIR = process.cwd();
+const DEFAULT_FEED_PLACEHOLDER = '<!-- markdown items -->'
+const DEFAULT_SITEMAP_PLACEHOLDER = '<!-- markdown items -->'
 const markdownIt = createMarkdownItInstance();
 
 // Define the tags with meta data name
@@ -23,10 +25,16 @@ const META_TAGS_WITH_NAME = [
 
 const markdownify = (options = {}) => {
 
-  const { input, output, defaults, contentPlaceholder, metaPlaceholder, words_per_minute, template } = options;
+  const { input, output, defaults, contentPlaceholder, metaPlaceholder, words_per_minute, htmlTemplate, feedTemplate, feedContentPlaceholder, sitemapTemplate, sitemapContentPlaceholder, doNotRenderFeed, doNotRenderSitemap } = options;
 
   const config = {
-    templatePath: template || DEFAULT_TEMPLATE_PATH,
+    templatePath: htmlTemplate || DEFAULT_TEMPLATE_PATH,
+    feedTemplate,
+    sitemapTemplate,
+    feedContentPlaceholder: feedContentPlaceholder || DEFAULT_FEED_PLACEHOLDER,
+    sitemapContentPlaceholder: sitemapContentPlaceholder || DEFAULT_SITEMAP_PLACEHOLDER,
+    doNotRenderFeed,
+    doNotRenderSitemap,
     markdownDir: input || DEFAULT_DIRS.markdown,
     outputDir: output || DEFAULT_DIRS.output,
     markdownify_content_placeholder: contentPlaceholder || MARKDOWNIFY_CONTENT_PLACEHOLDER,
@@ -81,8 +89,13 @@ async function renderMarkdownFiles(config) {
     }))
     .map(page => makeFile(`${page.filename}.html`, config.outputDir, page.output))
 
-  makeSitemap(pages, config.outputDir)
-  makeFeed(pages, config)
+  if(!config.doNotRenderSitemap) {
+    makeSitemap(pages, config)
+  }
+  
+  if(!config.doNotRenderFeed) {
+    makeFeed(pages, config)
+  }
 }
 
 const formatDate = date => new Date(date).getTime(); // Function to format date
@@ -167,11 +180,17 @@ function substituteHtml(template, page, pages, { markdownify_content_placeholder
     .replace(markdownify_meta_placeholder, metaInsert)
 }
 
-function makeSitemap(pages, outputDir) {
+function makeSitemap(pages, { outputDir, sitemapTemplate, sitemapContentPlaceholder }) {
 
-  const sitemap_template = `<?xml version="1.0" encoding="utf-8" ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"><!-- Urls will be auto injected -->
+  let sitemap_template;
+
+  if(sitemapTemplate) {
+    sitemap_template = fs.readFileSync(sitemapTemplate, 'utf-8');
+  } else {
+    sitemap_template = `<?xml version="1.0" encoding="utf-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">${sitemapContentPlaceholder}
 </urlset>`;
+  }
 
   const sitemap_string = pages
     .map(file => {
@@ -184,25 +203,31 @@ function makeSitemap(pages, outputDir) {
     .join("");
 
   let sitemap_html = sitemap_template.replace(
-    "<!-- Urls will be auto injected -->",
+    sitemapContentPlaceholder,
     sitemap_string
   );
 
   makeFile(`sitemap.xml`, outputDir, sitemap_html)
 }
 
-function makeFeed(pages, { outputDir, defaults } = {}) {
+function makeFeed(pages, { outputDir, defaults, feedTemplate, feedContentPlaceholder } = {}) {
 
-  const feed_template = `<?xml version="1.0" encoding="utf-8" ?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>${defaults.title}</title>
-    <author>${defaults.author}</author>
-    <link>${defaults.baseUrl}</link>
-    <description>${defaults.description}</description>
-    <atom:link href="${defaults.baseUrl}/feed.xml" rel="self" type="application/rss+xml"></atom:link><!-- Urls will be auto injected -->
-  </channel>
-</rss>`;
+  let feed_template;
+
+  if(feedTemplate) {
+    feed_template = fs.readFileSync(feedTemplate, 'utf-8');
+  } else {
+    feed_template = `<?xml version="1.0" encoding="utf-8" ?>
+    <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+      <channel>
+        <title>${defaults.title}</title>
+        <author>${defaults.author}</author>
+        <link>${defaults.baseUrl}</link>
+        <description>${defaults.description}</description>
+        <atom:link href="${defaults.baseUrl}/feed.xml" rel="self" type="application/rss+xml"></atom:link>${feedContentPlaceholder}
+      </channel>
+    </rss>`;
+  }
 
   const feed_string = pages
     .filter(file => !['home', 'index', 'privacy-policy', 'about', 'contact', 'analytics', 'missing', '404'].includes(file.filename))
@@ -220,10 +245,7 @@ function makeFeed(pages, { outputDir, defaults } = {}) {
     })
     .join("");
 
-  let feed_xml = feed_template.replace(
-    "<!-- Urls will be auto injected -->",
-    feed_string
-  );
+  let feed_xml = feed_template.replace(feedContentPlaceholder, feed_string);
 
   makeFile(`feed.xml`, outputDir, feed_xml)
 }

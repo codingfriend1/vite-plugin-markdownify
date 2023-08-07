@@ -5,3 +5,5 @@ articles
 dist/
 vite.config.js
 index.html
+feed.xml
+sitemap.xml
