@@ -1,0 +1,31 @@
+{
+  "name": "vite-plugin-markdownify",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Converts markdown files to static html files using an html template and outputs them to a folder.",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "test": "vite build"
+  },
+  "author": "Jon Paul Miles",
+  "license": "MIT",
+  "keywords": [
+    "vite-plugin",
+    "markdown",
+    "generator",
+    "static-site"
+  ],
+  "dependencies": {
+    "fs-extra": "^11.1.1",
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^13.0.1",
+    "markdown-it-attrs": "^4.1.6",
+    "markdown-it-footnote": "^3.0.3",
+    "markdown-it-modify-token": "^1.0.2"
+  },
+  "devDependencies": {
+    "vite": "^4.4.9"
+  }
+}
