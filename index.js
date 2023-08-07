@@ -14,7 +14,6 @@ const DEFAULT_TEMPLATE_PATH = './index.html'
 const DEFAULT_MARKDOWN_DIR = path.resolve(__dirname, './markdown');
 const DEFAULT_OUTPUT_DIR = process.cwd();
 const markdownIt = createMarkdownItInstance();
-let WORDS_PER_MINUTE = null;
 
 // Define the tags with meta data name
 const META_TAGS_WITH_NAME = [
@@ -25,20 +24,23 @@ const META_TAGS_WITH_NAME = [
 const markdownify = (options = {}) => {
 
   const { input, output, defaults, contentPlaceholder, metaPlaceholder, words_per_minute, template } = options;
-  const markdownDir = input || DEFAULT_DIRS.markdown;
-  const outputDir = output || DEFAULT_DIRS.output;
-  const markdownify_content_placeholder = contentPlaceholder || MARKDOWNIFY_CONTENT_PLACEHOLDER;
-  const markdownify_meta_placeholder = metaPlaceholder || MARKDOWNIFY_META_PLACEHOLDER;
-  WORDS_PER_MINUTE = words_per_minute
+
+  const config = {
+    templatePath: template || DEFAULT_TEMPLATE_PATH,
+    markdownDir: input || DEFAULT_DIRS.markdown,
+    outputDir: output || DEFAULT_DIRS.output,
+    markdownify_content_placeholder: contentPlaceholder || MARKDOWNIFY_CONTENT_PLACEHOLDER,
+    markdownify_meta_placeholder: metaPlaceholder || MARKDOWNIFY_META_PLACEHOLDER,
+    words_per_minute,
+    defaults
+  }
 
   return {
     name: 'vite-plugin-markdownify',
     // apply: 'all', // Apply this plugin during both development and production
 
     async writeBundle() {
-      const templatePath = template || DEFAULT_TEMPLATE_PATH;
-      console.log(`templatePath`, templatePath);
-      await renderMarkdownFiles(templatePath, markdownDir, outputDir, defaults, markdownify_content_placeholder, markdownify_meta_placeholder);
+      await renderMarkdownFiles(config);
     },
 
     transformIndexHtml: {
@@ -49,44 +51,44 @@ const markdownify = (options = {}) => {
           return html;
         }
 
-        const pages = getFiles(markdownDir)
-          .map(file => processFile(file, markdownDir, defaults))
+        const pages = getFiles(config.markdownDir)
+          .map(file => processFile(file, config))
           .filter(file => file)
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
         const page = pages.find(p => p.filename === 'index')
 
-        return substituteHtml(html, page, pages, markdownify_content_placeholder, markdownify_meta_placeholder)
+        return substituteHtml(html, page, pages, config)
       }
     }
   };
 };
 
 // Function to render all markdown files in a directory
-async function renderMarkdownFiles(templatePath, markdownDir, outputDir, defaults, markdownify_content_placeholder, markdownify_meta_placeholder) {
+async function renderMarkdownFiles(config) {
 
-  const template = fs.readFileSync(templatePath, 'utf-8'); // Read the HTML template
+  const template = fs.readFileSync(config.templatePath, 'utf-8'); // Read the HTML template
 
-  const pages = getFiles(markdownDir)
-    .map(file => processFile(file, markdownDir, defaults))
+  const pages = getFiles(config.markdownDir)
+    .map(file => processFile(file, config))
     .filter(file => file)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
   pages
     .map(page => ({
       ...page,
-      output: substituteHtml(template, page, pages, markdownify_content_placeholder, markdownify_meta_placeholder)
+      output: substituteHtml(template, page, pages, config)
     }))
-    .map(page => makeFile(`${page.filename}.html`, outputDir, page.output))
+    .map(page => makeFile(`${page.filename}.html`, config.outputDir, page.output))
 
-  makeSitemap(pages, outputDir)
-  makeFeed(pages, outputDir, defaults)
+  makeSitemap(pages, config.outputDir)
+  makeFeed(pages, config)
 }
 
 const formatDate = date => new Date(date).getTime(); // Function to format date
 
 // Function to process a markdown file into HTML
-function processFile(file, markdownDir, defaults) {
+function processFile(file, { markdownDir, defaults, words_per_minute }) {
   const fileInfo = matter(fs.readFileSync(file, 'utf-8')); // Read the markdown file
 
   if (fileInfo.data.draft) { // If it is a draft, don't process it
@@ -99,8 +101,8 @@ function processFile(file, markdownDir, defaults) {
 
   let mergeReadingTime = {}
 
-  if(WORDS_PER_MINUTE) {
-    mergeReadingTime.readingTime = calculateReadingTime(html)
+  if(words_per_minute) {
+    mergeReadingTime.readingTime = calculateReadingTime(html, words_per_minute)
   }
 
   return { 
@@ -134,20 +136,20 @@ function get_word_count(html) {
  * @param {number} word_count The number of words to read
  * @return {number} The number of minutes it would take an average reader to read
  */
-function get_reading_time(word_count) {
+function get_reading_time(word_count, words_per_minute) {
 
-  const reading_time_in_minutes = Math.round(word_count / WORDS_PER_MINUTE)
+  const reading_time_in_minutes = Math.round(word_count / words_per_minute)
 
   return reading_time_in_minutes
 }
 
 
-function calculateReadingTime(html) {
+function calculateReadingTime(html, words_per_minute) {
   const wordCount = get_word_count(html);
-  return get_reading_time(wordCount);
+  return get_reading_time(wordCount, words_per_minute);
 }
 
-function substituteHtml(template, page, pages, markdownify_content_placeholder, markdownify_meta_placeholder) {
+function substituteHtml(template, page, pages, { markdownify_content_placeholder, markdownify_meta_placeholder } = {}) {
 
   const htmlInsert = `<script>
     window.markdownify = { 
@@ -189,7 +191,7 @@ function makeSitemap(pages, outputDir) {
   makeFile(`sitemap.xml`, outputDir, sitemap_html)
 }
 
-function makeFeed(pages, outputDir, defaults) {
+function makeFeed(pages, { outputDir, defaults } = {}) {
 
   const feed_template = `<?xml version="1.0" encoding="utf-8" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -253,28 +255,28 @@ function createMetaTag(page, key) {
   // Define templates for creating meta tags based on key
   const templates = {
     title: () => `
-    <title>${content}</title>
-    <meta name="pagename" content="${content}" />
-    <meta property="og:title" content="${content}" />
-    <meta name="twitter:title" content="${content}" />`,
+  <title>${content}</title>
+  <meta name="pagename" content="${content}" />
+  <meta property="og:title" content="${content}" />
+  <meta name="twitter:title" content="${content}" />`,
     author: () => `
-    <meta name="author" content="${content}" />
-    <meta property="article:author" content="${content}" />`,
+  <meta name="author" content="${content}" />
+  <meta property="article:author" content="${content}" />`,
     description: () => `
-    <meta name="description" content="${content}" />
-    <meta property="og:description" content="${content}" />
-    <meta name="twitter:description" content="${content}" />`,
+  <meta name="description" content="${content}" />
+  <meta property="og:description" content="${content}" />
+  <meta name="twitter:description" content="${content}" />`,
     absolute_url: () => `
-    <meta name="url" content="${content}" />
-    <meta property="og:url" content="${content}" />
-    <meta name="identifier-URL" content="${content}" />`,
+  <meta name="url" content="${content}" />
+  <meta property="og:url" content="${content}" />
+  <meta name="identifier-URL" content="${content}" />`,
     updatedAt: () => `
-    <meta property="article:modified_time" content="${new Date(content).toISOString()}" />`,
+  <meta property="article:modified_time" content="${new Date(content).toISOString()}" />`,
     createdAt: () => `
-    <meta property="article:published_time" content="${new Date(content).toISOString()}" />`,
+  <meta property="article:published_time" content="${new Date(content).toISOString()}" />`,
     default: () => META_TAGS_WITH_NAME.includes(key) ? `
-    <meta name="${key}" content="${content}" />`: `
-    <meta property="${key}" content="${content}" />`
+  <meta name="${key}" content="${content}" />`: `
+  <meta property="${key}" content="${content}" />`
   };
 
   return (templates[key] || templates.default)();

@@ -1,6 +1,6 @@
 # vite-plugin-markdownify
 
-`vite-plugin-markdownify` is a Vite plugin for converting Markdown files into HTML pages using a template. It also injects metadata and static site navigation data into your application. It's a simple tool for generating static websites with Markdown and Vite.
+`vite-plugin-markdownify` is a Vite plugin for converting markdown files to static html files using an html template and outputting them to a folder. It also injects metadata and static site navigation data into your pages. It's a simple tool for generating incredibly fast static websites with Markdown and Vite.
 
 ## Features
 
