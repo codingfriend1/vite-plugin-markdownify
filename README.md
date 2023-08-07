@@ -112,7 +112,8 @@ The `contentPlacholder` will be replaced with a script containing a javascript o
       "absolute_url":"combined of baseUrl from the vite configuration with filepath for the relevant markdown file ignoring extension",
       "readingTime": "reading time in minutes",
       "filename":"relative file path from markdown folder, ignoring extension",
-      "html": "rendered html from markdown", 
+      "html": "rendered html from markdown"
+    },
 
     // Other pages
     pages: [
@@ -124,7 +125,7 @@ The `contentPlacholder` will be replaced with a script containing a javascript o
 </script>
 ```
 
-This structure enables seamless integration with front-end frameworks like React or Vue. You can render the active page using the data from `window.markdownify.page` and navigate to other pages represented in `window.markdownify.pages` without reloading the entire page. Such an approach leverages client-side routing for a super fast and responsive user experience.
+This structure enables seamless integration with front-end frameworks like React or Vue. You can render the active page using the data from `window.markdownify.page` and navigate to other pages represented in `window.markdownify.pages` without reloading the entire page. Such an approach would leverage client-side routing for a super fast and responsive user experience.
 
 ## Contribution & Contact
 
