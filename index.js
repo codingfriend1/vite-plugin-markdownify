@@ -168,7 +168,7 @@ function substituteHtml(template, page, pages, { markdownify_content_placeholder
     window.markdownify = { 
       page: ${JSON.stringify(page)}, 
       pages: ${JSON.stringify(pages)} 
-    }
+    };
   </script>`
 
   const metaInsert = Object.keys(page)

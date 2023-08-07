@@ -40,8 +40,8 @@ export default defineConfig({
       feedContentPlaceholder: '<!-- markdown items -->', // Optional
       sitemapTemplate: './sitemap.xml', // Optional
       sitemapContentPlaceholder: '<!-- markdown items -->', // Optional
-      doNotRenderFeed: true, // Don't render the `feed.xml`
-      doNotRenderSitemap: true, // Don't render the `sitemap.xml`
+      doNotRenderFeed: true, // Optional
+      doNotRenderSitemap: true, // Optional
       defaults: { // Default meta tags and fields for default `feed.xml`
         title: `Default Title`,
         author: `Author's Name`,
@@ -61,9 +61,9 @@ export default defineConfig({
 - **`output`**: Output directory for HTML files (default `process.cwd()`).
 - **`contentPlaceholder`**: Placeholder for content script (default `<!--markdownify content-->`).
 - **`metaPlaceholder`**: Placeholder for meta tags (default `<!--markdownify meta-->`).
-- **`feedTemplate`**: Feed.xml template path. A default feed.xml template will be provided if not supplied.
+- **`feedTemplate`**: `Feed.xml` template path. A default feed.xml template will be provided if not supplied.
 - **`feedContentPlaceholder`**: If a `feedTemplate` is supplied, this specifies the string to replace with the markdown items.
-- **`sitemapTemplate`**: sitemap.xml template path. A default sitemap.xml template will be provided if not supplied.
+- **`sitemapTemplate`**: `sitemap.xml` template path. A default `sitemap.xml` template will be provided if not supplied.
 - **`sitemapContentPlaceholder`**: If a `sitemapTemplate` is supplied, this specifies the string to replace with the markdown items/urls.
 - **`doNotRenderFeed`**: Disable building the `feed.xml`
 - **`doNotRenderSitemap`**: Disable building the `sitemap.xml`
@@ -81,6 +81,7 @@ description: "Page description"
 keywords: ['best site ever', 'all about penguins'].
 updatedAt: str | int timestamp 
 createdAt: str | int timestamp
+url: '/page'
 draft: false
 ---
 ```
@@ -88,6 +89,42 @@ draft: false
 - `createdAt`: is the creation date of the page. If this is not provided, the plugin will use the file's birth date.
 - `updatedAt`: is the last update date of the page. If this is not provided, the plugin will use the file's modification date.
 - `draft`: If this is true, the plugin will ignore this file during processing.
+- `url` : Defaults to the file path within the markdown folder, otherwise may manually be specified.
+
+## Rendered HTML
+The rendered HTML will be based on a specified template, with certain placeholders being replaced with dynamic content. Specifically:
+The `metaPlaceholder` will be replaced with the meta tags corresponding to the front matter of the relevant Markdown file. These meta tags include information like the title, author, description, and other metadata specific to the page. 
+The `contentPlacholder` will be replaced with a script containing a javascript object structured as follows:
+
+```html
+<script>
+  window.markdownify = {
+    // Active page
+    page: {
+      "title":"The page title",
+      "author":"The page author",
+      "description":"The page description",
+      "baseUrl":"from vite configuration defaults",
+      "og:type":"default vite meta tag specified in configuration",
+      "url":"front matter url",
+      "updatedAt":1691423641586,
+      "createdAt":1531440000000,
+      "absolute_url":"combined of baseUrl from the vite configuration with filepath for the relevant markdown file ignoring extension",
+      "readingTime": "reading time in minutes",
+      "filename":"relative file path from markdown folder, ignoring extension",
+      "html": "rendered html from markdown", 
+
+    // Other pages
+    pages: [
+      { ...other markdown file },
+      { ...other markdown file },
+      ...
+    ]
+  };
+</script>
+```
+
+This structure enables seamless integration with front-end frameworks like React or Vue. You can render the active page using the data from `window.markdownify.page` and navigate to other pages represented in `window.markdownify.pages` without reloading the entire page. Such an approach leverages client-side routing for a super fast and responsive user experience.
 
 ## Contribution & Contact
 
