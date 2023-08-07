@@ -109,7 +109,7 @@ The `contentPlacholder` will be replaced with a script containing a javascript o
       "url":"front matter url",
       "updatedAt":1691423641586,
       "createdAt":1531440000000,
-      "absolute_url":"combined of baseUrl from the vite configuration with filepath for the relevant markdown file ignoring extension",
+      "absolute_url":"combination of baseUrl from the vite configuration with the relative filepath from the relevant markdown file ignoring extension",
       "readingTime": "reading time in minutes",
       "filename":"relative file path from markdown folder, ignoring extension",
       "html": "rendered html from markdown"
