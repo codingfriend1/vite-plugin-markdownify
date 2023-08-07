@@ -11,7 +11,7 @@ import { URL } from 'url';
 const MARKDOWNIFY_CONTENT_PLACEHOLDER = '<!--markdownify content-->'
 const MARKDOWNIFY_META_PLACEHOLDER = '<!--markdownify meta-->'
 const DEFAULT_TEMPLATE_PATH = './index.html'
-const DEFAULT_MARKDOWN_DIR = path.resolve(__dirname, './markdown');
+const DEFAULT_MARKDOWN_DIR = path.resolve('./markdown');
 const DEFAULT_OUTPUT_DIR = process.cwd();
 const DEFAULT_FEED_PLACEHOLDER = '<!-- markdown items -->'
 const DEFAULT_SITEMAP_PLACEHOLDER = '<!-- markdown items -->'
