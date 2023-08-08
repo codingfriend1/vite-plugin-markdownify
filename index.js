@@ -25,7 +25,22 @@ const META_TAGS_WITH_NAME = [
 
 const markdownify = (options = {}) => {
 
-  const { input, output, defaults, contentPlaceholder, metaPlaceholder, words_per_minute, htmlTemplate, feedTemplate, feedContentPlaceholder, sitemapTemplate, sitemapContentPlaceholder, doNotRenderFeed, doNotRenderSitemap } = options;
+  const { 
+    input,
+    output,
+    defaults,
+    contentPlaceholder,
+    metaPlaceholder,
+    words_per_minute,
+    htmlTemplate,
+    feedTemplate,
+    feedContentPlaceholder,
+    sitemapTemplate,
+    sitemapContentPlaceholder,
+    doNotRenderFeed,
+    doNotRenderSitemap,
+    renderings 
+  } = options;
 
   const config = {
     templatePath: htmlTemplate || DEFAULT_TEMPLATE_PATH,
@@ -40,6 +55,7 @@ const markdownify = (options = {}) => {
     markdownify_content_placeholder: contentPlaceholder || MARKDOWNIFY_CONTENT_PLACEHOLDER,
     markdownify_meta_placeholder: metaPlaceholder || MARKDOWNIFY_META_PLACEHOLDER,
     words_per_minute,
+    renderings,
     defaults
   }
 
@@ -88,6 +104,22 @@ async function renderMarkdownFiles(config) {
       output: substituteHtml(template, page, pages, config)
     }))
     .map(page => makeFile(`${page.filename}.html`, config.outputDir, page.output))
+
+  if(typeof config.renderings === 'object') {
+    Object.keys(config.renderings).forEach(filepath => {
+
+      const construct = config.renderings[filepath]
+
+      if(construct && construct.render) {
+
+        const items = construct.map ? pages.map(p => construct.map(p, config)).filter(p => p).join(''): pages
+
+        makeFile(filepath, config.outputDir, construct.render(items, config))
+
+      }
+      
+    })
+  }
 
   if(!config.doNotRenderSitemap) {
     makeSitemap(pages, config)

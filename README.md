@@ -30,18 +30,9 @@ import markdownify from 'vite-plugin-markdownify';
 export default defineConfig({
   plugins: [
     markdownify({
-      htmlTemplate: './path/to/template.html',
-      input: './path/to/markdown',
-      output: './path/to/output',
-      contentPlaceholder: `<!--markdownify content-->`,
-      metaPlaceholder: `<!--markdownify meta-->`,
-      words_per_minute: 275, // Optional reading time calculation
-      feedTemplate: './feed.xml', // Optional
-      feedContentPlaceholder: '<!-- markdown items -->', // Optional
-      sitemapTemplate: './sitemap.xml', // Optional
-      sitemapContentPlaceholder: '<!-- markdown items -->', // Optional
-      doNotRenderFeed: true, // Optional
-      doNotRenderSitemap: true, // Optional
+      htmlTemplate: './index.html',
+      input: './markdown',
+      output: './dist',
       defaults: { // Default meta tags and fields for default `feed.xml`
         title: `Default Title`,
         author: `Author's Name`,
@@ -91,7 +82,53 @@ draft: false
 - `draft`: If this is true, the plugin will ignore this file during processing.
 - `url` : Defaults to the file path within the markdown folder, otherwise may manually be specified.
 
+## Renderings Option
+
+The `renderings` option in the `vite-plugin-markdownify` configuration allows you to define custom renderings for specific files like `feed.xml` and `sitemap.xml`. It provides a flexible way to map and render content based on your pages and configuration.
+
+Here's a breakdown of how the `renderings` option works:
+
+- **`map`**: A function that takes a page and the configuration as arguments and returns a string. It's used to map each page to a specific format. For example, you can use it to format each page as an XML item for a feed.
+- **`render`**: A function that takes the mapped pages and the configuration as arguments and returns a string. It's used to render the final content for the file. You can use it to combine the mapped pages into a complete XML feed or sitemap.
+
+### Example
+
+```javascript
+renderings: {
+  'feed.xml': {
+    map: (page, config) => `
+      <item>
+        <title>${page.title}</title>
+        <author>${page.author || defaults.author}</author>
+        <pubdate>${new Date(page.createdAt).toISOString()}</pubdate>
+        <description>${page.description || defaults.description}</description>
+        <link>${page.absolute_url}</link>
+        <guid ispermalink="true">${page.absolute_url}</guid>
+      </item>`,
+    render: (pages, config) => {
+      const { defaults } = config
+      const feed_template = `...`; // Define your feed template
+      return feed_template.replace(placeholder, pages)
+    }
+  },
+  'sitemap.xml': {
+    map: (page, config) => `
+      <url>
+        <loc>${page.absolute_url}</loc>
+        <priority>1.0</priority>
+        <lastmod>${new Date(page.updatedAt).toISOString()}</lastmod>
+      </url>`,
+    render: (pages, config) => sitemap_template.replace(placeholder, pages)
+  },
+}
+```
+
+In this example, the `feed.xml` and `sitemap.xml` files are defined with custom mapping and rendering functions. The `map` function formats each page as an XML item, and the `render` function combines them into the final XML content.
+
+The `renderings` option provides a powerful way to customize the output of specific files, giving you full control over the format and content.
+
 ## Rendered HTML
+
 The rendered HTML will be based on a specified template, with certain placeholders being replaced with dynamic content. Specifically:
 The `metaPlaceholder` will be replaced with the meta tags corresponding to the front matter of the relevant Markdown file. These meta tags include information like the title, author, description, and other metadata specific to the page. 
 The `contentPlacholder` will be replaced with a script containing a javascript object structured as follows:
