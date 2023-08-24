@@ -47,7 +47,7 @@ export default defineConfig({
 
 ## Configuration
 
-- **`template`**: HTML template path (default `'./index.html'`).
+- **`htmlTemplate`**: HTML template path (default `'./index.html'`).
 - **`input`**: Markdown files directory (default `'./markdown'`).
 - **`output`**: Output directory for HTML files (default `process.cwd()`).
 - **`contentPlaceholder`**: Placeholder for content script (default `<!--markdownify content-->`).
@@ -70,15 +70,15 @@ Include YAML front matter in Markdown files for title, description, keywords, up
 title: "Page title"
 description: "Page description"
 keywords: ['best site ever', 'all about penguins'].
-updatedAt: str | int timestamp 
-createdAt: str | int timestamp
+updated: str | int timestamp 
+created: str | int timestamp
 url: '/page'
 draft: false
 ---
 ```
 
-- `createdAt`: is the creation date of the page. If this is not provided, the plugin will use the file's birth date.
-- `updatedAt`: is the last update date of the page. If this is not provided, the plugin will use the file's modification date.
+- `created`: is the creation date of the page. If this is not provided, the plugin will use the file's birth date.
+- `updated`: is the last update date of the page. If this is not provided, the plugin will use the file's modification date.
 - `draft`: If this is true, the plugin will ignore this file during processing.
 - `url` : Defaults to the file path within the markdown folder, otherwise may manually be specified.
 

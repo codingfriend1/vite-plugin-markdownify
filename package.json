@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-markdownify",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Converts markdown files to static html files using an html template and outputs them to a folder.",
   "main": "index.js",
   "private": false,
